@@ -7,7 +7,7 @@ Playwrightの実行結果をSlackへ通知するための`npm package`です。
 ### 1. インストール
 
 ```bash
-npm i playwright-slack-notification
+npm i @zero-color/playwright-slack-notification
 ```
 
 ### 2. 通知方式を選んで設定する
@@ -52,7 +52,7 @@ Bot 方式を使う場合、Webhook URL (`SLACK_WEBHOOK_URL`) は不要です。
 ### 3. 任意のタイミングで通知を送る場合
 
 ```ts
-import { sendNotification } from 'playwright-slack-notification';
+import { sendNotification } from '@zero-color/playwright-slack-notification';
 
 await sendNotification('E2E tests passed ✅');
 ```
@@ -68,7 +68,7 @@ Reporter を `playwright.config.ts` に設定します：
 export default defineConfig({
   reporter: [
     ['list'],
-    ['playwright-slack-notification/reporter', {
+    ['@zero-color/playwright-slack-notification/reporter', {
       sendNotificationOnSuccess: false,
       showErrorDetails: true,
     }],
@@ -85,7 +85,7 @@ Bot 方式でスレッド投稿したい場合は `errorDetailsInThread: true` �
 export default defineConfig({
   reporter: [
     ['list'],
-    ['playwright-slack-notification/reporter', {
+    ['@zero-color/playwright-slack-notification/reporter', {
       sendNotificationOnSuccess: false,
       showErrorDetails: true,
       errorDetailsInThread: true,
