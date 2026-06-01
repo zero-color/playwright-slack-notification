@@ -1,7 +1,10 @@
 {
-  "name": "playwright-slack-notification",
+  "name": "@zero-color/playwright-slack-notification",
   "version": "0.0.1",
-  "description": "",
+  "description": "Playwright test reporter that sends notifications to Slack via Webhook or Bot Token",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./lib/index.js",
   "types": "./lib/types/index.d.ts",
   "exports": {
@@ -19,14 +22,17 @@
     "build": "npm run clean && tsc -p ./tsconfig.json",
     "prepack": "npm run build",
     "test": "npm run build && node --experimental-strip-types --test tests/*.test.ts",
-    "slack:test": "npm run build && node --env-file=.env ./scripts/slack-send.mjs"
+    "slack:test": "npm run build && node --env-file=.env ./scripts/slack-send.mjs",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run build && changeset publish"
   },
   "files": [
     "lib/**/*"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sugityan/playwright-slack-notification.git"
+    "url": "git+https://github.com/zero-color/playwright-slack-notification.git"
   },
   "keywords": [
     "playwright",
@@ -41,26 +47,17 @@
   "author": "sugityan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sugityan/playwright-slack-notification/issues"
+    "url": "https://github.com/zero-color/playwright-slack-notification/issues"
   },
-  "homepage": "https://github.com/sugityan/playwright-slack-notification#readme",
+  "homepage": "https://github.com/zero-color/playwright-slack-notification#readme",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.6.2",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@playwright/test": ">=1.40.0"
-  },
-  "description": "Playwright test reporter that sends notifications to Slack via Webhook or Bot Token",
-  "keywords": [
-    "playwright",
-    "slack",
-    "reporter",
-    "notification",
-    "testing",
-    "webhook",
-    "bot",
-    "test-results"
-  ]
+  }
 }
