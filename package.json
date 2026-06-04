@@ -1,6 +1,6 @@
 {
   "name": "@zero-color/playwright-slack-notification",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Playwright test reporter that sends notifications to Slack via Webhook or Bot Token",
   "publishConfig": {
     "access": "public"
