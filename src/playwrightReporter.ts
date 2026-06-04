@@ -30,6 +30,7 @@ export type { PlaywrightSlackReporterOptions } from './reporterTypes.ts';
  */
 export class PlaywrightSlackReporter implements Reporter {
   private readonly config: ReporterConfig;
+  private readonly testCases = new Map<string, TestCase>();
   private readonly failures: Failure[] = [];
   private passedCount = 0;
   private failedCount = 0;
@@ -45,50 +46,55 @@ export class PlaywrightSlackReporter implements Reporter {
 
   /**
    * Called when a test ends
-   * Collects test results and failure information
+   * Stores test cases for final outcome evaluation after all retries complete
    * 
    * @param test - The test case
    * @param result - The test result
    */
   onTestEnd(test: TestCase, result: TestResult): void {
-    if (result.status === 'failed' || result.status === 'timedOut') {
-      this.failedCount++;
-      
-      const titlePath = test.titlePath();
-      const title = titlePath.join(' › ');
-      // Extract only the test name (last element of titlePath)
-      const testName = titlePath[titlePath.length - 1] ?? title;
-      
-      const project = test.parent.project()?.name;
-      const location = test.location
-        ? `${toRelativePath(test.location.file)}:${test.location.line}:${test.location.column}`
-        : undefined;
-      
-      const allErrors = result.errors && result.errors.length > 0
-        ? result.errors
-            .map(e => e.stack ?? e.message)
-            .filter(Boolean)
-            .join('\n\n---\n\n')
-        : undefined;
-
-      const errorText = allErrors ?? result.error?.stack ?? result.error?.message;
-
-      const snippetSection = result.error?.snippet ? `\nCode snippet:\n${result.error.snippet}` : '';
-      const error = errorText ? `${errorText}${snippetSection}` : undefined;
-
-      this.failures.push({ title, testName, project, location, error });
-    } else if (result.status === 'passed') {
-      this.passedCount++;
-    }
+    this.testCases.set(test.id, test);
   }
 
   /**
    * Called when all tests have finished
-   * Sends notification to Slack if conditions are met
+   * Evaluates final test outcomes after all retries and sends notification to Slack if conditions are met
    * 
    * @param result - The full test result
    */
   async onEnd(result: FullResult): Promise<void> {
+    for (const test of this.testCases.values()) {
+      const outcome = test.outcome();
+      
+      if (outcome === 'unexpected') {
+        this.failedCount++;
+        
+        const lastResult = test.results[test.results.length - 1];
+        const titlePath = test.titlePath();
+        const title = titlePath.join(' › ');
+        const testName = titlePath[titlePath.length - 1] ?? title;
+        
+        const project = test.parent.project()?.name;
+        const location = test.location
+          ? `${toRelativePath(test.location.file)}:${test.location.line}:${test.location.column}`
+          : undefined;
+        
+        const allErrors = lastResult.errors && lastResult.errors.length > 0
+          ? lastResult.errors
+              .map(e => e.stack ?? e.message)
+              .filter(Boolean)
+              .join('\n\n---\n\n')
+          : undefined;
+
+        const errorText = allErrors ?? lastResult.error?.stack ?? lastResult.error?.message;
+        const snippetSection = lastResult.error?.snippet ? `\nCode snippet:\n${lastResult.error.snippet}` : '';
+        const error = errorText ? `${errorText}${snippetSection}` : undefined;
+
+        this.failures.push({ title, testName, project, location, error });
+      } else if (outcome === 'expected' || outcome === 'flaky') {
+        this.passedCount++;
+      }
+    }
+    
     const shouldNotify = this.config.shouldNotify(this.failures.length > 0, result.status);
     if (!shouldNotify) return;
 
